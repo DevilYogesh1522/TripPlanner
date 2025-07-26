@@ -1,74 +1,139 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { Input } from "@/components/ui/input"
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import { SelectBudgetOptions, SelectTravelesList } from "@/constants/Options.jsx";
+import { Button } from "../ui/button";
+// Import your toast utilities
+import { WarningToast, ErrorToast, SuccessToast } from "@/constants/Toasts";
 
-const GOMAPS_API_KEY = import.meta.env.VITE_GOMAPS_API_KEY; // Store API key securely
 
 export const CreateTrip = () => {
-  const [query, setQuery] = useState("");
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [place, setPlace] = useState(null); // Initialize as null or empty object
+  const [formData, setFormData] = useState({ // Initialize as an empty object
+    destination: null,
+    days: null,
+    budget: null,
+    travelers: null,
+  });
 
-  const fetchPlaces = async () => {
-    if (!query.trim()) {
-      return; // Don't search if the input is empty
+  const handleInputChange = (name, value) => {
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleCreateTrip = () => {
+    // 1. Validate required fields
+    if (!formData.destination || !formData.days || !formData.budget || !formData.travelers) {
+      ErrorToast('Please fill in all required travel preferences.');
+      return; // Stop execution if validation fails
     }
 
-    setLoading(true);
-    setError(null); // Clear previous errors
-
-    try {
-      const response = await axios.get(
-        `https://maps.gomaps.pro/maps/api/place/autocomplete/json?input=${query}&key=${GOMAPS_API_KEY}`
-      );
-      setPlaces(response.data.results || []);
-    } catch (error) {
-      setError("Error fetching places");
-      console.error("Error fetching places:", error);
-    } finally {
-      setLoading(false);
+    // 2. Validate days limit
+    if (formData.days < 1 || formData.days > 7) {
+      WarningToast('Trip duration must be between 1 and 7 days.'); // Corrected warning message
+      return; // Stop execution if validation fails
     }
+
+    // If all validations pass
+    SuccessToast('Generating your trip...');
+    console.log("Trip Data:", formData);
+    // Add your trip generation logic here (e.g., API call)
   };
 
   return (
-    <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10">
-      <h1 className="text-3xl font-bold text-center">Tell us Your Travel Preferences</h1>
-      <p className="mt-3 text-gray-500 text-xl text-center">
+    <div className="container mx-auto px-5 sm:px-10 md:px-32 lg:px-56 xl:px-10 mt-10 max-w-screen-lg">
+
+      {/* Page Title and Description */}
+      <h1 className="text-3xl font-bold text-center mb-3">Tell us your travel preferences 🏕️🌴</h1>
+      <p className="mt-3 text-gray-500 text-xl text-center mb-10">
         Just provide some basic information, and our trip planner will generate a customized itinerary based on your preferences.
       </p>
 
-      <div className="mt-20">
-        <h2 className="text-lg text-center">What is your destination of choice?</h2>
-        
-        <input
-          type="text"
-          placeholder="Enter a destination..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="border p-2 w-full mt-3 rounded-lg"
-        />
-        <button
-          onClick={fetchPlaces}
-          disabled={loading}
-          className={`mt-3 ${loading ? 'bg-gray-400' : 'bg-blue-500'} text-white px-4 py-2 rounded-lg`}
-        >
-          {loading ? "Loading..." : "Search"}
-        </button>
+      {/* Form sections wrapper */}
+      <div className="max-w-2xl mx-auto">
 
-        {error && <p className="mt-3 text-red-500">{error}</p>}
+        {/* Destination Input Section */}
+        <div className="mb-8">
+          <h2 className="text-xl my-3 font-medium text-left">What is destination of your choice?</h2>
+          <GooglePlacesAutocomplete
+            apiKey={import.meta.env.VITE_Google_Place_Api}
+            selectProps={{
+              value: place,
+              onChange: (v) => {
+                setPlace(v);
+                handleInputChange('destination', v ? v.label : null); // Store label or null if cleared
+              },
+              placeholder: "Enter a destination...",
+              styles: {
+                control: (provided) => ({
+                  ...provided,
+                  padding: "0.25rem",
+                  minHeight: "48px",
+                  borderColor: 'rgb(209 213 219)',
+                  '&:hover': {
+                    borderColor: 'rgb(156 163 175)',
+                  },
+                }),
+                input: (provided) => ({
+                  ...provided,
+                  padding: "0.5rem",
+                }),
+              },
+            }}
+          />
+        </div>
 
-        <ul className="mt-5">
-          {places.length > 0 ? (
-            places.map((place, index) => (
-              <li key={index} className="p-2 border-b">
-                {place.name}
-              </li>
-            ))
-          ) : (
-            <p className="text-gray-500">No results found.</p>
-          )}
-        </ul>
+        {/* Trip Days Input Section */}
+        <div className="mb-10">
+          <h2 className="text-xl my-3 font-medium text-left">How many days are you planning your trip?</h2>
+          <Input
+            placeholder="Ex.3"
+            type="number"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => handleInputChange('days', parseInt(e.target.value))} // Parse to int for number comparisons
+          />
+        </div>
       </div>
+
+      {/* Budget Selection Section */}
+      <div className="mt-10 max-w-2xl mx-auto">
+        <h2 className="text-xl my-3 font-medium text-left">What is your Budget?</h2>
+        <div className="flex flex-wrap justify-center gap-4">
+          {SelectBudgetOptions.map((data) => (
+            <div
+              key={data.id}
+              className={`flex flex-col items-center p-4 border rounded-lg shadow-sm hover:border-blue-500 cursor-pointer w-40 h-40 ${formData.budget === data.title ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300'}`}
+              onClick={() => handleInputChange('budget', data.title)}
+            >
+              <h2 className="text-4xl mb-2" role="img" aria-label={data.title}> {data.icon}</h2>
+              <p className="text-lg font-semibold text-gray-800">{data.title}</p>
+              <p className="text-sm text-gray-600 text-center">{data.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Travelers Selection Section */}
+      <div className="mt-10 max-w-2xl mx-auto">
+        <h2 className="text-xl my-3 font-medium text-left">Who do you plan on travelling with on your next adventure?</h2>
+        <div className="flex flex-wrap justify-center gap-4">
+          {SelectTravelesList.map((data) => (
+            <div
+              key={data.id}
+              className={`flex flex-col items-center p-4 border rounded-lg shadow-sm hover:border-blue-500 cursor-pointer w-40 h-40 ${formData.travelers === data.title ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300'}`}
+              onClick={() => handleInputChange('travelers', data.title)}
+            >
+              <h2 className="text-4xl mb-2" role="img" aria-label={data.title}> {data.icon}</h2>
+              <p className="text-lg font-semibold text-gray-800">{data.title}</p>
+              <p className="text-sm text-gray-600 text-center">{data.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Button onClick={handleCreateTrip} className="my-10 flex mx-auto">Generate Trip</Button> {/* Centered button */}
     </div>
   );
 };
