@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input"
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
-import { SelectBudgetOptions, SelectTravelesList } from "@/constants/Options.jsx";
+import { AI_PROMPT, SelectBudgetOptions, SelectTravelesList } from "@/constants/Options.jsx";
 import { Button } from "../ui/button";
 // Import your toast utilities
 import { WarningToast, ErrorToast, SuccessToast } from "@/constants/Toasts";
+import { chatSession } from "@/service/AIModal";
 
 
 export const CreateTrip = () => {
@@ -23,7 +24,7 @@ export const CreateTrip = () => {
     });
   };
 
-  const handleCreateTrip = () => {
+  const handleCreateTrip =async () => {
     // 1. Validate required fields
     if (!formData.destination || !formData.days || !formData.budget || !formData.travelers) {
       ErrorToast('Please fill in all required travel preferences.');
@@ -40,6 +41,16 @@ export const CreateTrip = () => {
     SuccessToast('Generating your trip...');
     console.log("Trip Data:", formData);
     // Add your trip generation logic here (e.g., API call)
+
+    const FINAL_PROMPT=AI_PROMPT
+    .replace('{location}', formData?.destination)
+    .replace('{days}', formData?.days)
+    .replace('{travelers}',formData?.travelers)
+    .replace('{budget}',formData.budget)
+    .replace('{days}', formData?.days)
+    
+    const result=await chatSession.sendMessage(FINAL_PROMPT);
+    console.log(result.response?.text());
   };
 
   return (
