@@ -6,10 +6,14 @@ import { Button } from "../ui/button";
 // Import your toast utilities
 import { WarningToast, ErrorToast, SuccessToast } from "@/constants/Toasts";
 import { chatSession } from "@/service/AIModal";
+import { doc, setDoc } from "firebase/firestore"; 
+import { db } from "@/service/FirebaseConfig";
+import { useNavigate } from "react-router-dom";
 
 
 export const CreateTrip = () => {
   const [place, setPlace] = useState(null); // Initialize as null or empty object
+  const navigate=useNavigate();
   const [formData, setFormData] = useState({ // Initialize as an empty object
     destination: null,
     days: null,
@@ -39,7 +43,7 @@ export const CreateTrip = () => {
 
     // If all validations pass
     SuccessToast('Generating your trip...');
-    console.log("Trip Data:", formData);
+   
     // Add your trip generation logic here (e.g., API call)
 
     const FINAL_PROMPT=AI_PROMPT
@@ -50,9 +54,38 @@ export const CreateTrip = () => {
     .replace('{days}', formData?.days)
     
     const result=await chatSession.sendMessage(FINAL_PROMPT);
-    console.log(result.response?.text());
+    SaveAiTrip(result.response?.text());
+    
+   
   };
+const SaveAiTrip = async (TripData) => {
+  const docid = Date.now().toString();
 
+  // Remove Markdown formatting
+  let cleanedJson = TripData.replace(/```json|```/g, "").trim();
+
+  // Optional: Remove any trailing commas before closing brackets/braces
+  cleanedJson = cleanedJson.replace(/,\s*([}\]])/g, '$1');
+
+  let parsedTripData;
+  try {
+    parsedTripData = JSON.parse(cleanedJson);
+  } catch (err) {
+    console.error("❌ Invalid JSON from Gemini:\n", err);
+    console.log("🔍 Raw TripData:\n", cleanedJson); // Optional: log for debugging
+    return;
+  }
+
+  await setDoc(doc(db, "Trips", docid), {
+    userSelection: formData,
+    id: docid,
+    tripData: parsedTripData,
+  });
+  navigate('/view-trip/'+docid);
+};
+
+
+    
   return (
     <div className="container mx-auto px-5 sm:px-10 md:px-32 lg:px-56 xl:px-10 mt-10 max-w-screen-lg">
 
