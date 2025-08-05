@@ -5,7 +5,8 @@ import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { CreateTrip } from './components/create-trip/Index.jsx'
 import Home from './components/Pages/Home.jsx'
-import Viewtrip from './view-trip/[tripid]/view'
+import Viewtrip from './view-trip/[tripid]/View'
+import About from './components/custom/About'
 
 const router=createBrowserRouter([
   {
@@ -23,7 +24,12 @@ const router=createBrowserRouter([
           {
             path:'/view-trip/:tripid',
             element:<Viewtrip/>
+          },
+          {
+            path:'about',
+            element:<About/>
           }
+
           
 
         ]
