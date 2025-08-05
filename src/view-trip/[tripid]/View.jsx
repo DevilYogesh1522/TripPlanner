@@ -4,7 +4,9 @@ import { useParams } from 'react-router-dom'
  import { doc, getDoc } from "firebase/firestore";
 import { Button } from '@/components/ui/button';
 import { db } from '@/service/FirebaseConfig';
-import Infosection from './components/Infosection';
+import Infosection from '../components/Infosection';
+import Hotels from '../components/Hotels';
+import PlacesToVisit from '../components/PlacesToVisit';
 function Viewtrip() {
     const {tripid}=useParams()
 const[tripdata,settripdata]=useState(null)
@@ -20,14 +22,22 @@ if (docSnap.exists()) {
   console.log("No such document!");
 }
 }
-//  useEffect(() => {
-//     getdata(); // fetch data on mount
-//   }, [tripid]);
+ useEffect(() => {
+    getdata(); // fetch data on mount
+  }, [tripid]);
 
   return (
     <div>
+      {/* //trip info */}
       <Infosection trip={tripdata}/>
-      <Button onClick={getdata}>Get Data </Button>
+      {/* <Button onClick={getdata}>Get Data </Button> */}
+      
+
+      {/* places to visit  */}
+      <PlacesToVisit trip={tripdata}/>
+
+        {/* hotels */}
+      <Hotels trip={tripdata}/>
     </div>
   )
 }
