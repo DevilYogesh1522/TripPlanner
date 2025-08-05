@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer=()=> {
     return (
-        <footer className="bg-white border-y mt-10 min-h-screen">
+        <footer className="bg-white border-y mt-10">
             <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
                 <div className="md:flex md:justify-between">
                     <div className="mb-6 md:mb-0">
@@ -36,7 +36,7 @@ export const Footer=()=> {
                             <ul className="text-gray-500 font-medium">
                                 <li className="mb-4">
                                     <a
-                                        href="https://github.com/hiteshchoudhary"
+                                        href="https://github.com/Yogesh-1522"
                                         className="hover:underline"
                                         target="_blank"
                                         rel="noreferrer"
