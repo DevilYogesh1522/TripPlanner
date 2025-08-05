@@ -58,6 +58,7 @@ export const CreateTrip = () => {
     
    
   };
+  
 const SaveAiTrip = async (TripData) => {
   const docid = Date.now().toString();
 
